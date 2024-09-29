@@ -21,7 +21,7 @@ impl Blockchain {
         let mut blockchain = Blockchain {
             chain: vec![],
             mempool: vec![],
-            difficulty: 4,
+            difficulty: 5,
             adjustment_interval: 10,
             target_block_time: 10,
         };
