@@ -1,4 +1,3 @@
-// src/block/mining.rs
 use rayon::prelude::*;
 use sha2::{Digest, Sha256};
 use hex;
@@ -26,7 +25,6 @@ pub fn mine_block_parallel(index: u32, transactions: Vec<Transaction>, previous_
     let transactions_serialized = serde_json::to_string(&transactions).unwrap();
     let prefix = "0".repeat(difficulty);
 
-    // Attempt different nonces in parallel
     let nonce = (0..u64::MAX).into_par_iter()
         .find_any(|&nonce| {
             let hash = calculate_hash(index, &timestamp, &transactions_serialized, &previous_hash, nonce);
