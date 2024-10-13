@@ -71,10 +71,8 @@ impl Blockchain {
             }
         };
 
-        // Klonowanie ostatniego bloku, aby zakończyć niezmienny borrow
         let last_block = self.chain.last().unwrap().clone();
 
-        // Teraz, bez pożyczania niezmiennego `self`, można pożyczyć mutowalnie
         self.add_reward_transaction(validator.clone(), 50.0); // Przykładowa nagroda 50 tokenów
 
         let mut new_transactions = self.mempool.clone();
@@ -84,7 +82,7 @@ impl Blockchain {
             last_block.index + 1,
             new_transactions,
             last_block.hash.clone(),
-            self.difficulty, // Możesz dostosować lub usunąć w PoS
+            self.difficulty,
             validator.clone(),
         );
 
