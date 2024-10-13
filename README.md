@@ -1,6 +1,6 @@
 # Rust Blockchain Implementation
 
-A simple and modular blockchain implementation in Rust, demonstrating the core principles of blockchain technology, including block creation, transaction management, mining (Proof of Work), difficulty adjustment, and chain validation. This project is designed with clean code practices, making it easy to understand, maintain, and extend.
+A simple and modular blockchain implementation in Rust, demonstrating the core principles of blockchain technology, including block creation, transaction management, **Proof of Stake (PoS)** consensus, staking, reward distribution, difficulty adjustment, and chain validation. This project is designed with clean code practices, making it easy to understand, maintain, and extend.
 
 ## Table of Contents
 
@@ -15,21 +15,24 @@ A simple and modular blockchain implementation in Rust, demonstrating the core p
 
 ## Features
 
-- **Block Structure:** Each block contains an index, timestamp, list of transactions, previous hash, current hash, and nonce.
+- **Block Structure:** Each block contains an index, timestamp, list of transactions, previous hash, current hash, and validator.
 - **Transaction Management:** Simple transactions with sender, receiver, and amount.
-- **Mining (Proof of Work):** Implements a Proof of Work algorithm to secure the blockchain.
+- **Consensus Mechanism:** Implements **Proof of Stake (PoS)** for securing the blockchain.
+- **Staking:** Users can stake tokens to become validators.
+- **Validator Selection:** Validators are selected based on their stake to create new blocks.
+- **Reward Distribution:** Validators receive rewards for creating new blocks.
 - **Difficulty Adjustment:** Automatically adjusts mining difficulty based on the time taken to mine recent blocks.
 - **Chain Validation:** Ensures the integrity and validity of the blockchain.
-- **Parallel Processing:** Utilizes the Rayon library for parallel computation during mining to enhance performance.
 - **Unit and Integration Tests:** Comprehensive tests to ensure the reliability of blockchain operations.
 
 ## Architecture
 
 The project is structured into several modules, each responsible for a specific aspect of the blockchain:
 
-- **`blockchain`**: Manages the overall blockchain, including adding transactions, mining blocks, and validating the chain.
-- **`block`**: Defines the block structure and mining logic.
+- **`blockchain`**: Manages the overall blockchain, including adding transactions, staking, mining blocks, and validating the chain.
+- **`block`**: Defines the block structure and related functionalities.
 - **`transaction`**: Handles transaction creation and management.
+- **`staking`**: Manages staking of tokens and selection of validators.
 - **`utils`**: Provides utility functions for hashing and time management.
 
 This modular approach promotes separation of concerns, making the codebase easier to navigate and maintain.
@@ -48,6 +51,7 @@ This modular approach promotes separation of concerns, making the codebase easie
    git clone https://github.com/yourusername/rust-blockchain.git
    cd rust-blockchain
 
+
 2. **Build the Project:**
    ```bash
    cargo build --release
@@ -65,58 +69,71 @@ After building the project, you can run the blockchain application to interact w
 2. **Example Output**
 
    ```bash
-   Mining a new block...
-   Block has been mined and added to the chain.
-   Mining another block...
-   Block has been mined and added to the chain.
+    Digging a new block...
+    The block was kicked out and added to the chain by the validator: Bob
+    Digging another block...
+    A block was dug up and added to the chain by the validator: Alice
    Block {
-       index: 0,
-       timestamp: "2024-04-27T12:34:56Z",
-       transactions: [
-           Transaction {
-               sender: "0",
-               receiver: "0",
-               amount: 0.0,
-           },
-       ],
-       previous_hash: "0",
-       hash: "0000abcd1234...",
-       nonce: 123456,
-   }
-   Block {
-       index: 1,
-       timestamp: "2024-04-27T12:35:10Z",
-       transactions: [
-           Transaction {
-               sender: "Alice",
-               receiver: "Bob",
-               amount: 50.0,
-           },
-           Transaction {
-               sender: "Bob",
-               receiver: "Charlie",
-               amount: 25.0,
-           },
-       ],
-       previous_hash: "0000abcd1234...",
-       hash: "0000efgh5678...",
-       nonce: 789012,
-   }
-   Block {
-       index: 2,
-       timestamp: "2024-04-27T12:35:25Z",
-       transactions: [
-           Transaction {
-               sender: "Charlie",
-               receiver: "Dave",
-               amount: 10.0,
-           },
-       ],
-       previous_hash: "0000efgh5678...",
-       hash: "0000ijkl9012...",
-       nonce: 345678,
-   }
-   Is the blockchain valid? true
+    index: 0,
+    timestamp: "2024-04-27T12:34:56Z",
+    transactions: [
+        Transaction {
+            sender: "0",
+            receiver: "0",
+            amount: 0.0,
+        },
+    ],
+    previous_hash: "0",
+    hash: "abcd1234...",
+    nonce: 0,
+    validator: "genesis",
+    }
+    Block {
+    index: 1,
+    timestamp: "2024-04-27T12:35:10Z",
+    transactions: [
+    Transaction {
+    sender: "Alice",
+    receiver: "Bob",
+    amount: 50.0,
+    },
+    Transaction {
+    sender: "Bob",
+    receiver: "Charlie",
+    amount: 25.0,
+    },
+    Transaction {
+    sender: "system",
+    receiver: "Bob",
+    amount: 50.0, // Nagroda
+    },
+    ],
+    previous_hash: "abcd1234...",
+    hash: "efgh5678...",
+    nonce: 0,
+    validator: "Bob",
+    }
+    Block {
+    index: 2,
+    timestamp: "2024-04-27T12:35:25Z",
+    transactions: [
+    Transaction {
+    sender: "Charlie",
+    receiver: "Dave",
+    amount: 10.0,
+    },
+    Transaction {
+    sender: "system",
+    receiver: "Alice",
+    amount: 50.0, // Nagroda
+    },
+    ],
+    previous_hash: "efgh5678...",
+    hash: "ijkl9012...",
+    nonce: 0,
+    validator: "Alice",
+    }
+    Czy blockchain jest ważny? true
 
 3. **Interacting with the Blockchain**
 
@@ -135,45 +152,51 @@ The project includes unit and integration tests to ensure the correctness of blo
 
 - Genesis Block Creation: Verifies the creation of the genesis block with correct initial values.
 - Transaction Addition: Ensures that transactions are correctly added to the mempool.
+- Staking: Tests adding and removing stakes, and selecting validators.
 - Block Mining: Tests the mining process and the addition of new blocks to the chain.
 - Chain Validation: Confirms the integrity of the blockchain and detects tampering.
 
 3. **Example Test Output**
    ```bash
-   running 4 tests
-   test tests::test_add_transaction ... ok
-   test tests::test_chain_validity ... ok
-   test tests::test_genesis_block ... ok
-   test tests::test_mine_block ... ok
-   
-   test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+   running 5 tests
+    test tests::test_add_transaction ... ok
+    test tests::test_chain_validity ... ok
+    test tests::test_genesis_block ... ok
+    test tests::test_mine_block ... ok
+    test tests::test_stake_tokens ... ok
+    
+    test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ## Project Structure
 
    ```bash
       rust-blockchain/
-      ├── Cargo.toml
-      └── src/
-          ├── main.rs
-          ├── lib.rs
-          ├── blockchain/
-          │   ├── mod.rs
-          │   ├── blockchain.rs
-          │   ├── difficulty.rs
-          │   └── validation.rs
-          ├── block/
-          │   ├── mod.rs
-          │   ├── block.rs
-          │   └── mining.rs
-          ├── transaction/
-          │   ├── mod.rs
-          │   └── transaction.rs
-          ├── utils/
-          │   ├── mod.rs
-          │   ├── hash.rs
-          │   └── time.rs
-          └── tests/
-              └── integration_tests.rs
+├── Cargo.toml
+└── src/
+    ├── main.rs
+    ├── lib.rs
+    ├── blockchain/
+    │   ├── mod.rs
+    │   ├── blockchain.rs
+    │   ├── difficulty.rs
+    │   └── validation.rs
+    ├── block/
+    │   ├── mod.rs
+    │   ├── block.rs
+    │   └── mining.rs
+    ├── transaction/
+    │   ├── mod.rs
+    │   └── transaction.rs
+    ├── staking/
+    │   ├── mod.rs
+    │   └── staking.rs
+    ├── utils/
+    │   ├── mod.rs
+    │   ├── hash.rs
+    │   └── time.rs
+    └── tests/
+        └── integration_tests.rs
+
 
 ```
 ## Module Breakdown
@@ -189,6 +212,8 @@ The project includes unit and integration tests to ensure the correctness of blo
   - mining.rs: Contains mining-related functionalities.
 - transaction/:
   - transaction.rs: Defines the Transaction structure and methods.
+- staking/:
+    staking.rs: Manages staking, adding/removing stakes, and selecting a validator.
 - utils/:
   - hash.rs: Utility functions for hashing.
   - time.rs: Utility functions for handling timestamps.

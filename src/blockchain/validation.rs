@@ -12,16 +12,12 @@ pub fn is_chain_valid(chain: &Vec<Block>, difficulty: usize) -> bool {
             &current.timestamp,
             &transactions_serialized,
             &current.previous_hash,
-            current.nonce,
+            &current.validator,
         ) {
             return false;
         }
 
         if current.previous_hash != previous.hash {
-            return false;
-        }
-
-        if &current.hash[..difficulty] != "0".repeat(difficulty) {
             return false;
         }
     }

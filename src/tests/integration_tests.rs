@@ -1,3 +1,5 @@
+// src/tests/integration_tests.rs
+
 use my_blockchain::blockchain::Blockchain;
 use my_blockchain::transaction::Transaction;
 
@@ -11,6 +13,7 @@ fn test_genesis_block() {
     assert_eq!(genesis.transactions[0].sender, "0");
     assert_eq!(genesis.transactions[0].receiver, "0");
     assert_eq!(genesis.transactions[0].amount, 0.0);
+    assert_eq!(genesis.validator, "genesis");
 }
 
 #[test]
@@ -25,24 +28,41 @@ fn test_add_transaction() {
 }
 
 #[test]
+fn test_stake_tokens() {
+    let mut blockchain = Blockchain::new();
+    blockchain.stake_tokens("Alice".to_string(), 100);
+    blockchain.stake_tokens("Bob".to_string(), 200);
+    assert_eq!(blockchain.staking.stakes.get("Alice"), Some(&100));
+    assert_eq!(blockchain.staking.stakes.get("Bob"), Some(&200));
+}
+
+#[test]
 fn test_mine_block() {
     let mut blockchain = Blockchain::new();
+    blockchain.stake_tokens("Alice".to_string(), 100);
+    blockchain.stake_tokens("Bob".to_string(), 200);
+
     let tx1 = Transaction::new("Alice".to_string(), "Bob".to_string(), 50.0);
     let tx2 = Transaction::new("Bob".to_string(), "Charlie".to_string(), 25.0);
     blockchain.add_transaction(tx1.clone());
     blockchain.add_transaction(tx2.clone());
     blockchain.mine_block();
+
     assert_eq!(blockchain.chain.len(), 2);
     let mined_block = &blockchain.chain[1];
     assert_eq!(mined_block.index, 1);
     assert_eq!(mined_block.transactions.len(), 2);
     assert_eq!(mined_block.transactions[0].sender, "Alice");
     assert_eq!(mined_block.transactions[1].receiver, "Charlie");
+    assert!(mined_block.validator == "Alice" || mined_block.validator == "Bob");
 }
 
 #[test]
 fn test_chain_validity() {
     let mut blockchain = Blockchain::new();
+    blockchain.stake_tokens("Alice".to_string(), 100);
+    blockchain.stake_tokens("Bob".to_string(), 200);
+
     let tx1 = Transaction::new("Alice".to_string(), "Bob".to_string(), 50.0);
     blockchain.add_transaction(tx1);
     blockchain.mine_block();
